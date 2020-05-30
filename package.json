@@ -1,9 +1,9 @@
 {
-  "name": "web",
+  "name": "mybrary",
   "version": "1.0.0",
   "main": "index.js",
   "scripts": {
-    "start": "node run server.js",
+    "start": "node server.js",
     "devStart": "nodemon run server.js"
   },
   "keywords": [],
