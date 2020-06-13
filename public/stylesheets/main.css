@@ -35,6 +35,10 @@ body {
     font-weight: 500;
 }
 
+.message {
+    color:hsl(var(--color-base-hue), 100%, 50%)
+}
+
 .error-message {
     color:hsl(var(--color-danger-hue), 100%, 50%)
 }

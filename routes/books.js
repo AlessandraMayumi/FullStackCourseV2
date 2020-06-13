@@ -10,16 +10,11 @@ const imageMineTypes = ['image/jpeg', 'image/png', 'image/gif']
 router.get('/', async (req, res) => {
     let query = Book.find()
     if (req.query.title != null && req.query.title != '') {
-        query = query.regex('title', new RegExp(req.query.title, 'i'))
-    }    
+        query = query.regex('title', new RegExp(req.query.title, 'i'))}    
     if (req.query.publishedBefore != null && req.query.publishedBefore != '') {
-        
-        query = query.lte('publishedDate', new RegExp(req.query.publishedBefore)) // less than or equal to
-    }
+        query = query.lte('publishedDate', new RegExp(req.query.publishedBefore))}
     if (req.query.publishedAfter != null && req.query.publishedAfter != '') {
-        
-        query = query.gte('publishedDate', new RegExp(req.query.publishedAfter)) // greater than or equal to
-    }
+        query = query.gte('publishedDate', new RegExp(req.query.publishedAfter))}
     try {
         const books = await query.exec()
         res.render('books/index', {
@@ -29,12 +24,11 @@ router.get('/', async (req, res) => {
     } catch (error) {
         res.redirect('/')
     }
-
 })
 
 // New Book Route
 router.get('/new', async(req, res) => {
-    renderNewPage(res, new Book())
+    renderFormPage(res, new Book(), 'new')
 })
 
 // Create Book Route
@@ -71,7 +65,7 @@ router.get('/:id', async(req, res) => {
 router.get('/:id/edit', async(req, res) => {
     try {
         const book = await Book.findById(req.params.id)
-        renderEditPage(res, book)
+        renderFormPage(res, book, 'edit')
     } catch (error) {
         res.redirect('/')
     }
@@ -95,7 +89,7 @@ router.put('/:id', async(req, res) => {
     } catch (error) {
         console.log(error)
         if (book != null) {
-            renderEditPage(res, book, true)
+            renderFormPage(res, book, 'edit',true)
         } else {
             console.log(error)
             res.redirect('/')
@@ -121,14 +115,6 @@ router.delete('/:id', async (req, res) => {
         }
     }
 })
-
-async function renderNewPage(res, book, hasError=false) {
-    renderFormPage(res, book, 'new', hasError)
-}
-
-async function renderEditPage(res, book, hasError=false) {
-    renderFormPage(res, book, 'edit', hasError)
-}
 
 async function renderFormPage(res, book, form, hasError=false) {
     try {

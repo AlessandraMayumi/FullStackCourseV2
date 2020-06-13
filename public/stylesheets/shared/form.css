@@ -58,7 +58,7 @@
     background-color: black;
 }
 
-.form-item input:focus, .form-item select:focus, .form-item textarea:focus {
+.form-item input:focus, .form-item select:focus, .form-item textarea:focus .select-items div,.select-selected{
     border-color: var(--form-input-border-color-light);
 }
 
