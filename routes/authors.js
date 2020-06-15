@@ -4,7 +4,7 @@ const Author = require('../models/author')
 const Book = require('../models/book')
 
 // All Authors Route 
-router.get('/', async (req, res) => {
+router.get('/',isLoggedIn, async (req, res) => {
     let searchOptions = {}
     if(req.query != null && req.query.name !== '') {
         searchOptions.name = new RegExp(req.query.name, 'i')
@@ -19,6 +19,16 @@ router.get('/', async (req, res) => {
         res.redirect('/')
     }
 })
+// Authenticate user Login
+function isLoggedIn(req, res, next) {
+    if(req.isAuthenticated()) {
+        console.log("Authenticated");
+        return next();
+    }
+    console.log("Not Authenticated");
+    //req.session.returnTo = req.originalUrl;
+    res.redirect('/login');
+}
 
 // New Author Route
 router.get('/new', (req, res) => {
@@ -51,7 +61,6 @@ router.get('/:id', async(req, res) => {
             booksByAuthor: books
         })
     } catch (error) {
-        console.log(error)
         res.redirect('/')
     }
 })

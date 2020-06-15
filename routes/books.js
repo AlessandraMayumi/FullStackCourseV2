@@ -87,11 +87,9 @@ router.put('/:id', async(req, res) => {
         await book.save()
         res.redirect(`/books/${book.id}`)
     } catch (error) {
-        console.log(error)
         if (book != null) {
             renderFormPage(res, book, 'edit',true)
         } else {
-            console.log(error)
             res.redirect('/')
         }
     }
