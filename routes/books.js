@@ -17,6 +17,7 @@ router.get('/', async (req, res) => {
         query = query.gte('publishedDate', new RegExp(req.query.publishedAfter))}
     try {
         const books = await query.exec()
+        res.locals.authenticated = req.isAuthenticated()
         res.render('books/index', {
             books: books,
             searchOptions: req.query
@@ -27,12 +28,12 @@ router.get('/', async (req, res) => {
 })
 
 // New Book Route
-router.get('/new', async(req, res) => {
+router.get('/new', isLoggedIn, async(req, res) => {
     renderFormPage(res, new Book(), 'new')
 })
 
 // Create Book Route
-router.post('/', async(req, res) => {
+router.post('/', isLoggedIn, async(req, res) => {
     const book = new Book({
         title: req.body.title,
         author: req.body.author,
@@ -62,7 +63,7 @@ router.get('/:id', async(req, res) => {
 })
 
 //Edit Book Route
-router.get('/:id/edit', async(req, res) => {
+router.get('/:id/edit', isLoggedIn, async(req, res) => {
     try {
         const book = await Book.findById(req.params.id)
         renderFormPage(res, book, 'edit')
@@ -72,7 +73,7 @@ router.get('/:id/edit', async(req, res) => {
 })
 
 // Update Book Route
-router.put('/:id', async(req, res) => {
+router.put('/:id', isLoggedIn,  async(req, res) => {
     let book = {}
     try {
         book = await Book.findById(req.params.id) 
@@ -96,7 +97,7 @@ router.put('/:id', async(req, res) => {
 })
 
 // Delete book page
-router.delete('/:id', async (req, res) => {
+router.delete('/:id', isLoggedIn, async (req, res) => {
     let book ={}
     try {
         book = await Book.findById(req.params.id)
@@ -104,6 +105,7 @@ router.delete('/:id', async (req, res) => {
         res.redirect('/books')
     } catch (error) {
         if (book != null) {
+            res.locals.authenticated = req.isAuthenticated()
             res.render('books/show', {
                 book: book,
                 errorMessage: 'Could not remove book'
@@ -122,6 +124,7 @@ async function renderFormPage(res, book, form, hasError=false) {
             book: book
         }
         if (hasError) params.errorMessage = 'Error Creating Book'
+        res.locals.authenticated = req.isAuthenticated()
         res.render(`books/${form}`, params)
     } catch (error) {
         res.redirect('/books')
@@ -136,4 +139,13 @@ function saveCover(book, coverEncoded) {
         book.coverImageType = cover.type
     }
 }
+const author = require('./authors')
+// Authenticate user Login
+function isLoggedIn(req, res, next) {
+        if(req.isAuthenticated()) {
+        return next();
+    }
+    res.redirect('/login');
+}
+
 module.exports = router

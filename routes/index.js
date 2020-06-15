@@ -9,7 +9,8 @@ router.get('/', async(req, res) => {
     } catch (error) {
         books = []
     }
+    res.locals.authenticated = req.isAuthenticated()
     res.render('index', { books: books })
 })
-//TODO logout
+
 module.exports = router

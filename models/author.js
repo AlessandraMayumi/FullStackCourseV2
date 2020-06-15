@@ -13,6 +13,7 @@ authorSchema.pre(`remove`, function(next) {
         if (err) {
             next(err)
         } else if (books.length > 0) {
+            //next({errorMessage:'This author still has books'})
             next(new Error('This author has books still'))
         } else {
             next()

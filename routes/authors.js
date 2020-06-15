@@ -1,16 +1,19 @@
 const express = require('express')
-const router = express.Router()
+
 const Author = require('../models/author')
 const Book = require('../models/book')
 
+const router = express.Router()
+
 // All Authors Route 
-router.get('/',isLoggedIn, async (req, res) => {
+router.get('/', async (req, res) => {
     let searchOptions = {}
     if(req.query != null && req.query.name !== '') {
         searchOptions.name = new RegExp(req.query.name, 'i')
     }
     try {
         const authors = await Author.find(searchOptions) // procura entre os autores que foram criados via POST
+        res.locals.authenticated = req.isAuthenticated()
         res.render('authors/index', {
             authors: authors, // retorna os autores da lista que correspondem ao regex
             searchOptions: req.query // retorna a query para aparecer na barra de pesquisa
@@ -19,19 +22,10 @@ router.get('/',isLoggedIn, async (req, res) => {
         res.redirect('/')
     }
 })
-// Authenticate user Login
-function isLoggedIn(req, res, next) {
-    if(req.isAuthenticated()) {
-        console.log("Authenticated");
-        return next();
-    }
-    console.log("Not Authenticated");
-    //req.session.returnTo = req.originalUrl;
-    res.redirect('/login');
-}
 
 // New Author Route
-router.get('/new', (req, res) => {
+router.get('/new', isLoggedIn, (req, res) => {
+    res.locals.authenticated = req.isAuthenticated()
     res.render('authors/new', { author: new Author() })
 })
 
@@ -44,6 +38,7 @@ router.post('/', async(req, res) => {
         const newAuthor = await author.save()
         res.redirect(`authors/${newAuthor.id}`)
     } catch(error) {
+        res.locals.authenticated = req.isAuthenticated()
         res.render('authors/new', {
             author: author,
             errorMessage: 'Error creating author'
@@ -56,6 +51,7 @@ router.get('/:id', async(req, res) => {
     try {
         const author = await Author.findById(req.params.id) 
         const books = await Book.find({ author: author.id }).limit(6).exec()
+        res.locals.authenticated = req.isAuthenticated()
         res.render('authors/show', {
             author: author,
             booksByAuthor: books
@@ -66,9 +62,10 @@ router.get('/:id', async(req, res) => {
 })
 
 // Edit Author Route
-router.get('/:id/edit', async(req, res) => {
+router.get('/:id/edit', isLoggedIn, async(req, res) => {
     try {
         const author = await Author.findById(req.params.id)
+        res.locals.authenticated = req.isAuthenticated()
         res.render('authors/edit', {author: author})
     } catch (error) {
         res.redirect(`/authors`)
@@ -88,6 +85,7 @@ router.put('/:id', async(req, res) => {
         if (author == null) {
             res.redirect('/')
         } else {
+            res.locals.authenticated = req.isAuthenticated()
             res.render('authors/new', {
                 author: author,
                 errorMessage: 'Error updating author'
@@ -97,7 +95,8 @@ router.put('/:id', async(req, res) => {
 })
 
 // Delete Author Route
-router.delete('/:id', async(req, res) => {
+router.delete('/:id', isLoggedIn, async(req, res) => {
+    console.log('delete')
     let author
     try {
         author = await Author.findById(req.params.id)
@@ -106,10 +105,23 @@ router.delete('/:id', async(req, res) => {
     } catch(error) {
         if (author == null) {
             res.redirect('/')
-        } else {
-            res.redirect(`/authors/${author.id}`)
+        } else {        
+            let books = await Book.find({ author: author.id }).limit(6).exec()
+            res.render('authors/show', {
+                author: author,
+                booksByAuthor: books,
+                errorMessage: error
+            })
         }
     }
 })
+
+// Authenticate user Login
+function isLoggedIn(req, res, next) {
+    if(req.isAuthenticated()) {
+        return next();
+    }
+    res.redirect('/login');
+}
 
 module.exports = router

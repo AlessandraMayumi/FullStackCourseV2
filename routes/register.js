@@ -4,7 +4,7 @@ const User = require('../models/user')
 const router = express.Router()
 
 router.get('/', (req, res) => {
-    req.logout();
+    res.locals.authenticated = req.isAuthenticated()
     res.render('register/index')
 })
 

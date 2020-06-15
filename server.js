@@ -4,15 +4,17 @@ if(process.env.NODE_ENV !== 'production') {
 // express
 const express = require('express')
 const expressLayouts = require('express-ejs-layouts')
-const methodOverride = require('method-override')
+const methodOverride = require('method-override') // override post to put or delete
 const bodyParser = require('body-parser')
 // login
 const passport = require('passport')
 const session = require('express-session')
-const MongoStore = require('connect-mongo')(session);
+const MongoStore = require('connect-mongo')(session)
+const passportSetup = require('./config/passport-setup')
 // router
 const indexRouter = require('./routes/index.js')
 const loginRouter = require('./routes/login')
+const logoutRouter = require('./routes/logout')
 const registerRouter = require('./routes/register')
 const authorRouter = require('./routes/authors.js')
 const bookRouter = require('./routes/books.js')
@@ -25,8 +27,7 @@ app.set('layout', 'layouts/layout')
 app.use(expressLayouts)
 app.use(methodOverride('_method'))
 app.use(express.static('public'))
-// sending data via url to the server
-app.use(bodyParser.urlencoded({ limit: '10mb', extended: false }))
+app.use(bodyParser.urlencoded({ limit: '10mb', extended: false })) // sending data via url to the server
 app.use(bodyParser.json())
 
 // mongoDB
@@ -46,29 +47,12 @@ app.use(session({
 }))
 app.use(passport.initialize());
 app.use(passport.session());
-// passport-setup
-const LocalStrategy = require('passport-local').Strategy
-const User = require('./models/user')
-// passport Strategies
-passport.use(new LocalStrategy(
-    function(username, password, done) {
-        User.findOne({ username: username }, async function (err, user) {
-            if (err) { return done(err) }
-            if (!user) { return done(null, false, { errorMessage: 'Incorrect username' }) } 
-            if (! await user.validPassword(password)) { return done(null, false, { errorMessage: 'Incorrect password' }) }
-            return done(null, user, { message: 'Successful Login' })
-        });
-    }
-))
-// passport login
-passport.serializeUser(function(user, done) { done(null, user.id) });
-passport.deserializeUser(function(id, done) { 
-    User.findById(id, function(err, user) { done(err, user) }) 
-})
+passportSetup
 
 //routes
 app.use('/', indexRouter)
 app.use('/login', loginRouter)
+app.use('/logout', logoutRouter)
 app.use('/register', registerRouter)
 app.use('/authors', authorRouter)
 app.use('/books', bookRouter)
