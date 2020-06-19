@@ -29,11 +29,11 @@ router.get('/', async (req, res) => {
 
 // New Book Route
 router.get('/new', isLoggedIn, async(req, res) => {
-    renderFormPage(res, new Book(), 'new')
+    renderFormPage(res, req, new Book(), 'new')
 })
 
 // Create Book Route
-router.post('/', isLoggedIn, async(req, res) => {
+router.post('/', async(req, res) => {
     const book = new Book({
         title: req.body.title,
         author: req.body.author,
@@ -66,7 +66,7 @@ router.get('/:id', async(req, res) => {
 router.get('/:id/edit', isLoggedIn, async(req, res) => {
     try {
         const book = await Book.findById(req.params.id)
-        renderFormPage(res, book, 'edit')
+        renderFormPage(res, req, book, 'edit')
     } catch (error) {
         res.redirect('/')
     }
@@ -89,7 +89,7 @@ router.put('/:id', isLoggedIn,  async(req, res) => {
         res.redirect(`/books/${book.id}`)
     } catch (error) {
         if (book != null) {
-            renderFormPage(res, book, 'edit',true)
+            renderFormPage(res, req, book, 'edit',true)
         } else {
             res.redirect('/')
         }
@@ -116,7 +116,7 @@ router.delete('/:id', isLoggedIn, async (req, res) => {
     }
 })
 
-async function renderFormPage(res, book, form, hasError=false) {
+async function renderFormPage(res, req, book, form, hasError=false) {
     try {
         const authors = await Author.find({})
         const params = {
@@ -127,7 +127,8 @@ async function renderFormPage(res, book, form, hasError=false) {
         res.locals.authenticated = req.isAuthenticated()
         res.render(`books/${form}`, params)
     } catch (error) {
-        res.redirect('/books')
+        console.log(error)
+        res.redirect('/')
     }
 }
 

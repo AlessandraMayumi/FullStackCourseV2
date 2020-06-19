@@ -9,7 +9,9 @@ router.get('/', (req, res) => {
 
 router.post('/', function(req, res) {
     passport.authenticate('local', function(err, user, info='') {
-        req.login(user, function(err) { if (err) { return next(err); } });
+        req.login(user, function(err) { 
+            if (err) { return false } 
+        });
         res.locals.authenticated = req.isAuthenticated()
         return res.render('login/index', info)
     })(req, res);
